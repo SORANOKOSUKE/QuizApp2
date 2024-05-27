@@ -6,81 +6,59 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
 
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    @ObservedObject private var viewModel =  PhoneContentViewModel()
+    @State private var counterText: String = ""
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
+        ZStack {
+            VStack {
+                Text(String(viewModel.quizText))
+                    .font(.system(size: 36.0))
+                    .bold()
+                    .padding()
+
+                VStack(alignment: .leading, spacing: 10){
+                    Text(String("1." + viewModel.select1))
+                        .font(.system(size: 24.0))
+                        .bold()
+                        .foregroundColor(.blue) // 青色
+
+                    Text(String("2." + viewModel.select2))
+                        .font(.system(size: 24.0))
+                        .bold()
+                        .foregroundColor(.green) // 緑色
+
+                    Text(String("3." + viewModel.select3))
+                        .font(.system(size: 24.0))
+                        .bold()
+                        .foregroundColor(.orange) // オレンジ色
+
+                    Text(String("4." + viewModel.select4))
+                        .font(.system(size: 24.0))
+                        .bold()
+                        .foregroundColor(.red) // 赤色
+
                 }
-                .onDelete(perform: deleteItems)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
+            .padding()
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            if viewModel.showResult {
+                Text(viewModel.resultMessage)
+                    .font(.system(size: 186.0))
+                    .foregroundColor(viewModel.resultColor)
+                    .padding()
+                    .shadow(radius: 10)
             }
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
